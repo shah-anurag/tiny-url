@@ -1,0 +1,21 @@
+Steps to run:
+### Start the database(mongo db)
+1. brew services start mongodb-community@4.4
+2. Make a new table named tinyurl and key-db using mongo client (e.g. `use tinyurl`)
+
+### Start App server
+1. cd AppServer
+2. npm install
+3. npm run dev
+Will start the server on port 3000
+
+### Start KeyDb service
+1. cd KeyDb
+2. npm install
+3. npm run dev
+Will start the server on port 3001
+
+### Endpoints info
+1. http://localhost:3000/api/:longUrl => Returns registered shortUrl
+2. http://localhost:3000/api/ with body `{longUrl: "http://google.com"}` => For registering a longUrl
+3. http://localhost:3001/shortUrl => Only supports GET requests to get a short URL
