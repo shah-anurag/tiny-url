@@ -1,2 +1,6 @@
 node_modules
 package-lock.json
+*.docx
+*.tmp
+*.png
+*.drawio

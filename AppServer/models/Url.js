@@ -16,7 +16,13 @@ const UrlSchema = mongoose.Schema({
     },
     expiryDate: {
         type: Date,
-        required: false
+        required: true,
+        default: function () {
+            presentDate = new Date();
+            console.log(presentDate);
+            presentDate.setMonth(presentDate.getMonth() + 6);
+            return presentDate;
+        } // https://mongoosejs.com/docs/schematypes.html#dates
     }
 }, {collection: 'URL'})
 

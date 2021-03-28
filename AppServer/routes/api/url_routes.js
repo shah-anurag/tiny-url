@@ -19,7 +19,7 @@ router.get('/:shortUrlId', async (req, res) => {
             shortUrlId: shortUrlId
         }
         const record = await simpleDAO.findOne(filter, models.url);
-        if(record != null) {
+        if(record != null && (record.expiryDate == null || Date.now() <= record.expiryDate)) {
             res.status(302).redirect(record.longUrl);
         } else {
             res.status(400).send("Please register the url before use");
@@ -36,7 +36,7 @@ router.post('/', async (req, res) => {
         const shortURlRespose = await axios.get('http://localhost:3001/shortUrl/');
         console.log("response from shorturl", shortURlRespose);
         if (shortURlRespose.status == 200) {
-            const shortUrl = "localhost.com:3000/api/"+shortURlRespose.data.shortUrl._id;
+            const shortUrl = "localhost:3000/api/"+shortURlRespose.data.shortUrl._id;
             const record = {
                 longUrl: longUrl,
                 shortUrlId: shortURlRespose.data.shortUrl._id
