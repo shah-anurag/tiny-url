@@ -24,7 +24,7 @@ Will start the server on port 3000
 3. npm run dev
 Will start the server on port 3001
 
-### Endpoints info
+## Endpoints info
 1. http://localhost:3000/api/:longUrl => Returns registered shortUrl
 2. http://localhost:3000/api/ with body(json) `{"longUrl": "https://github.com/shah-anurag/tiny-url"}` => For registering a longUrl
 3. http://localhost:3001/shortUrlId => Only supports GET requests to get a short URL
