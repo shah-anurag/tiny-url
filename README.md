@@ -7,24 +7,24 @@ This is the famous tiny url project where users can get shortUrls for longUrls.
 
 Everything is in nodeJs (JS is everywhere :P)
 
-Steps to run:
-### Start the database(mongo db)
+### Steps to run:
+#### Start the database(mongo db)
 1. brew services start mongodb-community@4.4
 2. Make a new table named tinyurl and key-db using mongo client (e.g. `use tinyurl`)
 
-### Start App server
+#### Start App server
 1. cd AppServer
 2. npm install
 3. npm run dev
 Will start the server on port 3000
 
-### Start KeyDb service
+#### Start KeyDb service
 1. cd KeyDb
 2. npm install
 3. npm run dev
 Will start the server on port 3001
 
-## Endpoints info
+### Endpoints info
 1. http://localhost:3000/api/:longUrl => Returns registered shortUrl
 2. http://localhost:3000/api/ with body(json) `{"longUrl": "https://github.com/shah-anurag/tiny-url"}` => For registering a longUrl
 3. http://localhost:3001/shortUrlId => Only supports GET requests to get a short URL
