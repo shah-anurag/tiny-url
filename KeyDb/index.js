@@ -6,15 +6,8 @@ const cp = require('child_process')
 const keyRoute = require('./routes/key_routes')
 
 app.use(bodyParser.json())
+app.use(express.urlencoded({extended: true}));
 app.use('/shortUrl', keyRoute)
-
-// mongoose.connect(
-//     'mongodb://127.0.0.1:27017/key-db',
-//     {useNewUrlParser: true, useUnifiedTopology: true},
-//     () => {
-//       console.log('Connected to db!');
-//     }
-//   )
 
   const port = 3001
   app.listen(port, () => {
@@ -26,7 +19,6 @@ app.use('/shortUrl', keyRoute)
     child.stdout.on('data', (data) => { 
       console.log(`${data}`); 
     });
-
 
     child.stderr.on('data', (data) => { 
       console.error(`generateKeys::stderr: ${data}`); 

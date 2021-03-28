@@ -64,8 +64,7 @@ var InsertInDb = async function(record, Model) {
     return false;
   }
   try {
-    // const newEntry = new Model(record);
-    // await newEntry.save();
+    // Could have improved here by implementing to interface then to concrete class
     await simpleDAO.save(record, Model);
   } catch(err) {
     console.error("Error while saving:", record, "in Model", Model, err);
@@ -83,7 +82,7 @@ setInterval(async () => {
       var count2 = await models.remainingKeys.estimatedDocumentCount().exec();
 
       //  TODO: Have the rate of increase of keys logic integrated
-      //  TODO: Have batch insert logic
+      //  TODO: Have batch insert logic -> https://docs.mongodb.com/manual/reference/command/insert/#bulk-insert
       //  Have at least twice the already used keys
       while (count2 <= 2 * count1 || count2 <= 10) {
         const generatedShortUrl = generateKey();
