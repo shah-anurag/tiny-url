@@ -1,15 +1,31 @@
+require('dotenv').config()
+
 var express = require('express')
 var router = express.Router()
 var https = require('https')
 const axios = require('axios')
 const models = require('../../model')
 const simpleDAO = require('../../DAO/simpleDAO')
+const jwt = require('jsonwebtoken')
 
 // middleware that is specific to this router
 router.use(function timeLog (req, res, next) {
     console.log('Time: ', Date.now());
     next();
 });
+
+function authenticate(req, res, next) {
+    console.log('Inside Authenticate middleware')
+    const authHeader = req.headers['authorization']
+    const accessToken = authHeader && authHeader.split(' ')[1]
+    if (accessToken == null) return res.sendStatus(401);
+
+    jwt.verify(accessToken, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
+        if(err) return res.sendStatus(403);
+        req.user = user;
+        next();
+    })
+}
 
 router.get('/:shortUrlId', async (req, res) => {
     // console.log("req", req);
@@ -26,12 +42,13 @@ router.get('/:shortUrlId', async (req, res) => {
         }
     } catch(err) {
         console.error(err);
-        res.status(500).send("Something went wrong :(");
+        res.sendStatus(500);
     }
 })
 
-router.post('/', async (req, res) => {
+router.post('/', authenticate, async (req, res) => {
     try{ 
+        console.log("User", req.user)
         const longUrl = req.body.longUrl;
         const shortURlRespose = await axios.get('http://localhost:3001/shortUrl/');
         console.log("response from shorturl", shortURlRespose);

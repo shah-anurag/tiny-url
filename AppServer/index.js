@@ -10,6 +10,11 @@ app.use(bodyParser.json())
 app.use('/api', apis)
 app.use('/user', users)
 
+// Some fixes to remove WARN messages because of how mongoose works
+mongoose.set('useNewUrlParser', true);
+mongoose.set('useFindAndModify', false);
+mongoose.set('useCreateIndex', true);
+
 mongoose.connect(
   'mongodb://127.0.0.1:27017/tinyurl',
   {useNewUrlParser: true, useUnifiedTopology: true},
