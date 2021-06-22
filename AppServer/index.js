@@ -1,10 +1,11 @@
 const express = require('express')
 const app = express()
-const port = 3000
 const apis = require('./routes/api/url_routes')
 const users = require('./routes/api/user_routes')
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser')
+
+const PORT = 3000;
 
 app.use(bodyParser.json())
 app.use('/api', apis)
@@ -23,6 +24,6 @@ mongoose.connect(
   }
 )
 
-app.listen(port, () => {
-  console.log(`Example app listening at http://localhost:${port}`)
+app.listen(PORT, () => {
+  console.log(`Example app listening at http://localhost:${PORT}`)
 })

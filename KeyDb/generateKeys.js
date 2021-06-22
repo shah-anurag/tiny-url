@@ -64,7 +64,8 @@ var InsertInDb = async function(record, Model) {
     return false;
   }
   try {
-    // Could have improved here by implementing to interface then to concrete class
+    // Could have improved here by implementing to interface then to concrete class 
+    // i.e. instead on simpleDAO using DAO.save and not coupling it to use simpleDAO
     await simpleDAO.save(record, Model);
   } catch(err) {
     console.error("Error while saving:", record, "in Model", Model, err);
