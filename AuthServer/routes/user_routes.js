@@ -9,24 +9,60 @@ const simpleDAO = require('../DAO/simpleDAO')
 const jwt = require('jsonwebtoken')
 
 function generateAccessToken(user_email) {
-    return jwt.sign(user_email, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '15s' });
+    //TODO: Increase the timeout period once done testing
+    return jwt.sign(user_email, process.env.ACCESS_TOKEN_SECRET, { expiresIn: process.env.ACCESS_TOKEN_TIME_LIMIT || '2m' });
 }
 
-router.post('/token', async (req, res) => {
+function verifyRefreshToken(req, res, next) {
     const refreshToken = req.body.token;
-    if (refreshToken == null) res.sendStatus(401);
-    // TODO: Check if its in the database
-    jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET, (err, user) => {
+    if (refreshToken == null) return res.sendStatus(401);
+    
+    // Authorise using refreshToken and get the user details
+    jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET, async (err, user) => {
         if(err) return res.sendStatus(403);
-        const accessToken = generateAccessToken({email : user.body.email})
-        return res.json({accessToken: accessToken}).send();
+
+        console.log('user blah', user);
+
+        // Check if the refreshToken is in the database(to verify its valid)
+        // Will get the user info and get the refreshToken from there and verify if its not null
+        // Get the user record for authentication
+        const userRecord = await simpleDAO.findOne({ email : user.email }, models.user);
+        if(userRecord == null) return res.sendStatus(404);
+        if(userRecord.refreshToken === refreshToken) {
+            req.body.user = userRecord;
+            next();
+        } else {
+            return res.sendStatus(403);
+        }
     })
+}
+
+// Route to generate a new accessToken from the refreshToken
+router.post('/token', verifyRefreshToken, async (req, res) => {
+    try {
+        // Check if the refreshToken is in the database(to verify its valid)
+        // Will get the user info and get the refreshToken from there and verify if its not null
+        // Get the user record for authentication
+        const user = req.body.user;
+        const accessToken = generateAccessToken({email : user.email});
+        return res.json({accessToken: accessToken}).send();
+    } catch(e) {
+        console.error(e);
+        res.sendStatus(500);
+    }
 })
 
-router.delete('/logout', (req, res) => {
-    // delete the refresh token from database
-    res.sendStatus(204);
-})
+router.delete('/logout', verifyRefreshToken, async (req, res) => {
+    try {
+        const user = req.body.user;
+        user.refreshToken = null;
+        await simpleDAO.save(user, models.user);
+        return res.sendStatus(201);
+    } catch(e) {
+        console.error(e);
+        res.sendStatus(500);
+    }
+});
 
 router.post('/login', async (req, res) => {
     try {
@@ -39,25 +75,40 @@ router.post('/login', async (req, res) => {
             // User is now Authenticated. Further we will send a token for authorisation
             const accessToken = generateAccessToken({ email: user.email });
             const refreshToken = jwt.sign({email: user.email}, process.env.REFRESH_TOKEN_SECRET);
-            res.json({accessToken: accessToken, refreshToken: refreshToken}).send();
+
+            console.debug('accessToken, refreshToken', accessToken, refreshToken)
+
+            // Update User module with the refreshToken
+            user.refreshToken = refreshToken;
+
+            console.debug(user);
+
+            try {
+                await simpleDAO.save(user, models.user);
+            } catch(e) {
+                console.log(e);
+            }
+
+            console.log('Saved successfully!');
+            return res.json({accessToken: accessToken, refreshToken: refreshToken}).send();
         } else {
-            res.sendStatus(403);
+            // User isnt authenticated
+            return res.sendStatus(403);
         }
     } catch {
-        res.sendStatus(500);
+        return res.sendStatus(500);
     }
 })
 
 router.post('/signup', async (req, res) => {
     try {
         const hashedPassword = await bcrypt.hash(req.body.password, 10)
-        console.log(hashedPassword)
         const user = new User({
             name: req.body.name,
             email: req.body.email,
             password: hashedPassword
         })
-        console.log(user)
+        console.debug(user)
         simpleDAO.save(user, models.user)
         res.sendStatus(201)
     } catch {

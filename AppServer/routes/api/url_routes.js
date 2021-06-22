@@ -6,6 +6,7 @@ var https = require('https')
 const axios = require('axios')
 const models = require('../../model')
 const simpleDAO = require('../../DAO/simpleDAO')
+const cachedDAO = require('../../DAO/cachedDAO')
 const jwt = require('jsonwebtoken')
 
 // middleware that is specific to this router
@@ -21,21 +22,24 @@ function authenticate(req, res, next) {
     if (accessToken == null) return res.sendStatus(401);
 
     jwt.verify(accessToken, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
-        if(err) return res.sendStatus(403);
+        if(err) {
+            console.error('err', err);
+            return res.sendStatus(403);
+        }
         req.user = user;
         next();
     })
 }
 
 router.get('/:shortUrlId', async (req, res) => {
-    // console.log("req", req);
     try {
         const shortUrlId = req.params.shortUrlId;
         const filter = {
             shortUrlId: shortUrlId
         }
-        const record = await simpleDAO.findOne(filter, models.url);
-        if(record != null && (record.expiryDate == null || Date.now() <= record.expiryDate)) {
+        // Use cachedDAO for fetching for optimal performance
+        const record = await cachedDAO.findOne(filter, models.url, shortUrlId);
+        if(record && (record.fromCache || record.expiryDate === null || Date.now() <= record.expiryDate)) {
             res.status(302).redirect(record.longUrl);
         } else {
             res.status(400).send("Please register the url before use");
