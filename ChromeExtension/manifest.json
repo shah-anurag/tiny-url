@@ -1,0 +1,13 @@
+{
+    "manifest_version": 2,
+    "version": "1.0",
+    "name":"Tiny Url",
+    "description": "Get hasslefree from sharing longurls which fill up the whole space. Create a shorter version of the urls with this extension",
+    "browser_action": {
+        "default_popup": "popup.html"
+    },
+    "permissions": [
+        "tabs",
+        "activeTab"
+    ]
+}
