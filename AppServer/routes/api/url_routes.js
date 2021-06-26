@@ -50,12 +50,24 @@ router.get('/:shortUrlId', async (req, res) => {
     }
 })
 
-router.post('/', authenticate, async (req, res) => {
-    try{ 
-        console.log("User", req.user)
+async function fetchShortUrlForExistingLongUrl(longUrl) {
+    try {
+        const filter = {
+            longUrl: longUrl
+        }
+        const record = await simpleDAO.findOne(filter, models.url);
+        console.debug('Found: ', record);
+        return record;
+    } catch(err) {
+        console.error('Error while fetching shortUrl for existing longUrl: ', err);
+    }
+}
+
+router.post('/', async (req, res) => {
+    try{
         const longUrl = req.body.longUrl;
         const shortURlRespose = await axios.get('http://localhost:3001/shortUrl/');
-        console.log("response from shorturl", shortURlRespose);
+        // console.log("response from shorturl", shortURlRespose);
         if (shortURlRespose.status == 200) {
             const shortUrl = "localhost:3000/api/"+shortURlRespose.data.shortUrl._id;
             const record = {
@@ -72,8 +84,26 @@ router.post('/', authenticate, async (req, res) => {
         }
     } catch(err) {
         console.error(err);
-        res.status(400).send("Bad Request");
+        // Check if duplicate Error -> Might have caused due to already existing longurl
+        if(err.name === 'MongoError' && err.code === 11000) {
+            console.log("MongoError!");
+            const longUrl = req.body.longUrl
+            const record = await fetchShortUrlForExistingLongUrl(longUrl);
+            console.debug('Got: ', record);
+            if(record) {
+                const shortUrl = "localhost:3000/api/"+record.shortUrlId;
+                res.json({
+                    "shortUrl": shortUrl,
+                    "longUrl": longUrl
+                })
+            } else {
+                record.send(500);
+            }
+        } else {
+            res.status(400).send("Bad Request");
+        }
     }
+
 })
 
 module.exports = router

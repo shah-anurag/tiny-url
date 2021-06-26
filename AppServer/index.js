@@ -4,9 +4,12 @@ const apis = require('./routes/api/url_routes')
 const users = require('./routes/api/user_routes')
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser')
+const cors = require('cors');
+
 
 const PORT = 3000;
 
+app.use(cors());
 app.use(bodyParser.json())
 app.use('/api', apis)
 app.use('/user', users)
